@@ -98,13 +98,13 @@ class Conductor {
 	
 	//writes the message to the websocket
 	writeMessage(body, channelName, opcode, additional) {
-		var message = {
-			this.MessageType.body: body, 
-			this.MessageType.channelName: channelName,
-			this.MessageType.opCode: opcode,
-			this.MessageType.additional: additional
-			};
-		this.socket.send(JSON.stringify(messages));
+		var msg = {
+			body: body, 
+			channel_name: channelName,
+			opcode: opcode,
+			additional: additional
+		};
+		this.socket.send(JSON.stringify(msg));
 	}
 	
 	//process incoming messages
