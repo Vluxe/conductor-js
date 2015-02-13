@@ -1,4 +1,4 @@
-class Conductor {
+export class Conductor {
 	constructor(url, authToken) {
 		this.channels = {};
 		this.isConnected = false;
