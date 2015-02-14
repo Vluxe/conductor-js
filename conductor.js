@@ -1,5 +1,187 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-"use strict";var _prototypeProperties=function(e,n,s){n&&Object.defineProperties(e,n),s&&Object.defineProperties(e.prototype,s)},_classCallCheck=function(e,n){if(!(e instanceof n))throw new TypeError("Cannot call a class as a function")},Conductor=exports.Conductor=function(){function e(n,s){_classCallCheck(this,e),this.channels={},this.isConnected=!1,this.connectionStatus=null,this.kAllMessages="*",this.ConOpCode=Object.freeze({Bind:1,Unbind:2,Write:3,Info:4,Server:7,Invite:8}),this.MessageType=Object.freeze({name:"name",channelName:"channel_name",body:"body",opCode:"opcode",additional:"additional"});var t="?";n.indexOf(t)>-1&&(t="&"),this.socket=new WebSocket(n+t+"="+s),this.socket.onopen=function(){this.isConnected=!0,null!=this.connectionStatus&&this.connectionStatus(this.isConnected)},this.socket.onclose=function(){this.isConnected=!1,null!=this.connectionStatus&&this.connectionStatus(this.isConnected)},this.socket.onerror=function(){console.log("Error detected: "+error)},this.socket.onmessage=function(e){this.processMessage(e.data)}}return _prototypeProperties(e,null,{bind:{value:function(e,n){this.channels[e]=n,e!=this.kAllMessages&&this.writeMessage("",e,this.ConOpCode.Bind,null)},writable:!0,configurable:!0},unbind:{value:function(e){delete this.channels[e],e!=this.kAllMessages&&this.writeMessage("",e,this.ConOpCode.Unbind,null)},writable:!0,configurable:!0},serverBind:{value:function(e){this.serverChannel=e},writable:!0,configurable:!0},serverUnBind:{value:function(){this.serverChannel=null},writable:!0,configurable:!0},sendMessage:{value:function(e,n,s){this.writeMessage(e,n,this.ConOpCode.Write,s)},writable:!0,configurable:!0},sendInfo:{value:function(e,n,s){this.writeMessage(e,n,this.ConOpCode.Info,s)},writable:!0,configurable:!0},sendInvite:{value:function(e,n,s){this.writeMessage(e,n,this.ConOpCode.Invite,s)},writable:!0,configurable:!0},sendServerMessage:{value:function(e,n,s){this.writeMessage(e,n,this.ConOpCode.Server,s)},writable:!0,configurable:!0},connect:{value:function(){this.isConnected||(this.channels={},this.socket.open())},writable:!0,configurable:!0},disconnect:{value:function(){this.isConnected&&(this.channels={},this.socket.close())},writable:!0,configurable:!0},writeMessage:{value:function(e,n,s,t){var i={body:e,channel_name:n,opcode:s,additional:t};this.socket.send(JSON.stringify(i))},writable:!0,configurable:!0},processMessage:{value:function(e){var n=JSON.parse(e);n[this.MessageType.opCode]==this.ConOpCode.Server||n[this.MessageType.opCode]==this.ConOpCode.Invite?null!=self.serverChannel&&self.serverChannel(n):(null!=self.channels[n.channelName]&&self.channels[n.channelName](n),null!=self.channels[this.kAllMessages]&&self.channels[this.kAllMessages](n))},writable:!0,configurable:!0}}),e}();Object.defineProperty(exports,"__esModule",{value:!0});
+"use strict";
 
+var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
-},{}]},{},[1]);
+var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+window.Conductor = (function () {
+	function Conductor(url, authToken, connectionStatus) {
+		_classCallCheck(this, Conductor);
+
+		this.channels = {};
+		this.isConnected = false;
+		this.kAllMessages = "*";
+		this.ConOpCode = Object.freeze({ Bind: 1, Unbind: 2, Write: 3, Info: 4, Server: 7, Invite: 8 });
+		var param = "?Token";
+		if (url.indexOf(param) > -1) {
+			param = "&";
+		}
+
+		self = this;
+		this.socket = new WebSocket(url + param + "=" + authToken);
+		this.socket.onopen = function (e) {
+			self.isConnected = true;
+			if (connectionStatus != null) {
+				connectionStatus(self.isConnected);
+			}
+		};
+		this.socket.onclose = function (e) {
+			self.isConnected = false;
+			if (connectionStatus != null) {
+				connectionStatus(self.isConnected);
+			}
+		};
+		this.socket.onerror = function (error) {
+			console.log("Error detected: " + error); // need to change this for per method.
+		};
+		this.socket.onmessage = function (e) {
+			self.processMessage(e.data);
+		};
+	}
+
+	_prototypeProperties(Conductor, null, {
+		bind: {
+
+			//bind to a channel by its name and get messages from it
+			value: function bind(channelName, messages) {
+				this.channels[channelName] = messages;
+				if (channelName != this.kAllMessages) {
+					this.writeMessage("", channelName, this.ConOpCode.Bind, null);
+				}
+			},
+			writable: true,
+			configurable: true
+		},
+		unbind: {
+
+			//Unbind from a channel by its name and stop getting messages from it
+			value: function unbind(channelName) {
+				delete this.channels[channelName];
+				if (channelName != this.kAllMessages) {
+					this.writeMessage("", channelName, this.ConOpCode.Unbind, null);
+				}
+			},
+			writable: true,
+			configurable: true
+		},
+		serverBind: {
+
+			//bind to the "server channel" and get messages tha are of the server opcode
+			value: function serverBind(messages) {
+				this.serverChannel = messages;
+			},
+			writable: true,
+			configurable: true
+		},
+		serverUnBind: {
+
+			//UnBind from the "server channel" and stop get messages that are of the server opcode
+			value: function serverUnBind(channelName) {
+				this.serverChannel = null;
+			},
+			writable: true,
+			configurable: true
+		},
+		sendMessage: {
+
+			//send a message to a channel with the write opcode
+			value: function sendMessage(body, channelName, additional) {
+				this.writeMessage(body, channelName, this.ConOpCode.Write, additional);
+			},
+			writable: true,
+			configurable: true
+		},
+		sendInfo: {
+
+			//send a message to a channel with the info opcode
+			value: function sendInfo(body, channelName, additional) {
+				this.writeMessage(body, channelName, this.ConOpCode.Info, additional);
+			},
+			writable: true,
+			configurable: true
+		},
+		sendInvite: {
+
+			//send a invite to a channel to a user
+			value: function sendInvite(body, channelName, additional) {
+				this.writeMessage(body, channelName, this.ConOpCode.Invite, additional);
+			},
+			writable: true,
+			configurable: true
+		},
+		sendServerMessage: {
+
+			//send a message to a channel with the server opcode.
+			//note that channelName is optional in this case and is only used for context.
+			value: function sendServerMessage(body, channelName, additional) {
+				this.writeMessage(body, channelName, this.ConOpCode.Server, additional);
+			},
+			writable: true,
+			configurable: true
+		},
+		connect: {
+
+			//connect to the stream, if not connected
+			value: function connect() {
+				if (!this.isConnected) {
+					this.channels = {};
+				}
+			},
+			writable: true,
+			configurable: true
+		},
+		disconnect: {
+
+			//disconnect from the stream, if connected
+			value: function disconnect() {
+				if (this.isConnected) {
+					this.channels = {};
+					this.socket.close();
+				}
+			},
+			writable: true,
+			configurable: true
+		},
+		writeMessage: {
+
+			//wish these could be private...
+
+			//writes the message to the websocket
+			value: function writeMessage(body, channelName, opcode, additional) {
+				var msg = {
+					body: body,
+					channel_name: channelName,
+					opcode: opcode,
+					additional: additional
+				};
+				this.socket.send(JSON.stringify(msg));
+			},
+			writable: true,
+			configurable: true
+		},
+		processMessage: {
+
+			//process incoming messages
+			value: function processMessage(json) {
+				var message = JSON.parse(json);
+				if (message.opcode == this.ConOpCode.Server || message.opcode == this.ConOpCode.Invite) {
+					if (this.serverChannel != null) {
+						this.serverChannel(message);
+					}
+				} else {
+					if (this.channels[message.channel_name] != null) {
+						this.channels[message.channel_name](message);
+					}
+					if (this.channels[this.kAllMessages] != null) {
+						this.channels[this.kAllMessages](message);
+					}
+				}
+			},
+			writable: true,
+			configurable: true
+		}
+	});
+
+	return Conductor;
+})();
+
