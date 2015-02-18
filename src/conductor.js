@@ -9,7 +9,7 @@ window.Conductor = class Conductor {
 			param = "&";
 		}
 
-		self = this;
+		var self = this;
 		this.socket = new WebSocket(url + param + "=" + authToken);
 		this.socket.onopen = function(e) {
 			self.isConnected = true;
@@ -78,14 +78,7 @@ window.Conductor = class Conductor {
 		this.writeMessage(body,channelName,this.ConOpCode.Server,additional);
 	}
 
-	//connect to the stream, if not connected
-	connect() {
-		if(!this.isConnected) {
-			this.channels = {};
-		}
-	}
-
-	//disconnect from the stream, if connected
+	//disconnect from the stream, if connected.
 	disconnect() {
 		if(this.isConnected) {
 			this.channels = {};
