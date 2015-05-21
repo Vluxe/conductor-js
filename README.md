@@ -31,7 +31,7 @@ Conductor is licensed under the Apache v2 License.
 ### Vluxe
 * https://github.com/Vluxe
 * https://twitter.com/vluxeio
-* vluxe.io
+* http://vluxe.io
 
 ### Dalton Cherry
 * https://github.com/daltoniam
