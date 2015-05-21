@@ -1,4 +1,4 @@
-window.Conductor = class Conductor {
+export class Conductor {
 	constructor(url, authToken, connectionStatus) {
 		this.channels = {};
 		this.isConnected = false;
@@ -102,6 +102,7 @@ window.Conductor = class Conductor {
 	//process incoming messages
 	processMessage(json) {
 		var message = JSON.parse(json);
+		//console.log("got a Conductor message: " + json);
 		if(message.opcode == this.ConOpCode.Server || message.opcode == this.ConOpCode.Invite) {
 			if(this.serverChannel != null) {
 				this.serverChannel(message);
@@ -116,3 +117,5 @@ window.Conductor = class Conductor {
 		}
 	}
 }
+
+window.Conductor = Conductor;
