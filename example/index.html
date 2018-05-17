@@ -53,12 +53,15 @@
   <script src="../conductor.min.js"></script>
   <script>
     // note: this token is just a placeholder
-    token = prompt("Please enter your name.")
+    //token = prompt("Please enter your name.")
+    token = "heyo!"
     var con = new Conductor("ws://localhost:8080",token, function(isConnected) {
         if(isConnected) {
             // bind / listen to as many channels as needed.
             con.bind('hello', function(message) {
-                $('#ws').append('<p>' + message.body + '</p>');
+                var str = con.createStringFromArray(message.body);
+                var content = JSON.parse(str);
+                $('#ws').append('<p>' + content.text + '</p>');
                 $('#msg').val('');
              });
         } else {
@@ -66,14 +69,17 @@
         }
     });
 
-    con.connect();
+    //con.connect();
     $('#form').submit(function(e) {
       e.preventDefault();
-      msg = $('#msg').val();
+      str = $('#msg').val();
 
       // send data on channels you're bound to
-      con.sendMessage(msg,"hello");
-      $('#ws').append('<p>' + msg + '</p>');
+      var msg = {
+			text: str + "\n"
+		};
+      con.sendMessage("hello", JSON.stringify(msg));
+      $('#ws').append('<p>' + str + '</p>');
       $('#msg').val('');
     });
   </script>
